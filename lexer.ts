@@ -12,7 +12,7 @@ export default class Lexer {
   #tokens: Token[] = [];
   load(str: string): void {
     this.#charStream.load(str);
-    this.parse();
+    this.lex();
   }
 
   peek(): Token {
@@ -25,7 +25,7 @@ export default class Lexer {
     return this.#tokens[(this.#idx = idx)];
   }
 
-  parse(): void {
+  lex(): void {
     function createToken(type: TokenName, value: string): Token {
       return {
         type,

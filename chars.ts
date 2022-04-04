@@ -18,7 +18,6 @@ export default class CharStream {
         newline: /\n/.test(c)
       };
     });
-    this.#idx = 0;
   }
   peek(): Character | typeof CharStream.EOF {
     return this.#stack[this.#idx + 1] ?? CharStream.EOF;

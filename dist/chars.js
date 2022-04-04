@@ -24,7 +24,6 @@ export default class CharStream {
                 newline: /\n/.test(c)
             };
         }), "f");
-        __classPrivateFieldSet(this, _CharStream_idx, 0, "f");
     }
     peek() {
         var _a;

@@ -1,7 +1,7 @@
-import BlockOpcode from "./types/opcodes.js";
-import Category from "./types/categories.js";
-import Lexer from "./lexer/lexer.js";
-import InputOpcode from "./types/inputs.js";
+import BlockOpcode from "./types/opcodes";
+import Category from "./types/categories";
+import Lexer from "./lexer/lexer";
+import InputOpcode from "./types/inputs";
 
 interface Input {
   type: InputOpcode;

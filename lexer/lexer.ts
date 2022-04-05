@@ -1,5 +1,5 @@
-import CharStream, { Character } from "./chars.js";
-import TokenName from "./tokens.js";
+import CharStream, { Character } from "./chars";
+import TokenName from "./tokens";
 
 export interface Token {
   type: TokenName;

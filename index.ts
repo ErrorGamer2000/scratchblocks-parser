@@ -1,4 +1,4 @@
-import Lexer from "./lexer.js";
+import Lexer from "./lexer/lexer";
 
 let lex = new Lexer();
 lex.load(`if <(5) = (@cloud var1)> then

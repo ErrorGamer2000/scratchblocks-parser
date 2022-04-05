@@ -1,11 +1,13 @@
-import { Configuration } from "webpack";
-import * as path from "path";
+const path = require("path");
 
-const config: Configuration = {
+/**
+ * @type { import("webpack").Configuration }
+ */
+module.exports = {
   mode: "production",
   entry: "parser.ts",
   resolve: {
-    extensions: ["js", "ts"]
+    extensions: [".js", ".ts"]
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -15,12 +17,10 @@ const config: Configuration = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         use: "ts-loader",
         exclude: /node_modules/
       }
     ]
   }
 };
-
-export default config;

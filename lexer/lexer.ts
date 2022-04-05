@@ -6,9 +6,12 @@ export interface Token {
   value: string;
 }
 
+export type NextFn = typeof Lexer.prototype.next;
+export type PeekFn = typeof Lexer.prototype.peek;
+
 export default class Lexer {
   #charStream = new CharStream();
-  #idx = 0;
+  #tokenIndex = -1;
   #tokens: Token[] = [];
   load(str: string): void {
     this.#charStream.load(str);
@@ -16,13 +19,19 @@ export default class Lexer {
   }
 
   peek(): Token {
-    return this.#tokens[this.#idx + 1];
+    return this.#tokens[this.#tokenIndex + 1];
   }
   next(): Token {
-    return this.#tokens[++this.#idx];
+    return this.#tokens[++this.#tokenIndex];
   }
   seek(idx: number): Token {
-    return this.#tokens[(this.#idx = idx)];
+    return this.#tokens[(this.#tokenIndex = idx)];
+  }
+  at(idx: number): Token | void {
+    return this.#tokens[idx];
+  }
+  get tokenIndex() {
+    return this.#tokenIndex;
   }
 
   lex(): void {
@@ -46,7 +55,15 @@ export default class Lexer {
         if (isNum) {
           this.#addToken(createToken("number", string));
         } else {
-          this.#addToken(createToken("string", string));
+          let isColor =
+            /^#(?:[0-9a-f]{3}|[0-9A-F]{3})|(?:[0-9a-f]{6}|[0-9A-F]{6})$/.test(
+              string
+            );
+          if (isColor) {
+            this.#addToken(createToken("color", string));
+          } else {
+            this.#addToken(createToken("string", string));
+          }
         }
       }
       string = "";

@@ -38,6 +38,6 @@ module.exports = class Parser {
     this.#parse();
   }
   #parse(): void {
-    console.log(this.#lexer.getTokenList());
+    //...
   }
 };

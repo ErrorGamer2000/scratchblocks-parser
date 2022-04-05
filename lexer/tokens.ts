@@ -8,6 +8,7 @@ let tokens = [
   "lt",
   "gt",
   "number",
+  "color",
   "string",
   "atlabel",
   "whitespace",

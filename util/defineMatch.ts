@@ -2,9 +2,11 @@ import Lexer, { Token } from "../lexer/lexer";
 import TokenName from "../lexer/tokens";
 import ParserNode from "./parserNode";
 
+export type ValueMatcher = string | number | RegExp;
+
 export interface MatchBase {
   tokenType: TokenName;
-  value: string | number | RegExp | typeof defineMatch.valueAny;
+  value: ValueMatcher | ValueMatcher[] | typeof defineMatch.valueAny;
 }
 
 export interface SingleMatch extends MatchBase {
@@ -20,25 +22,48 @@ export interface MultiMatch {
 }
 
 export interface WhitespaceMatch {
-  optional: boolean;
+  matchType: "whitespace";
   type: "newline" | "whitespace";
+  optional: boolean;
 }
 
-export type MatchDefinition = (SingleMatch | MultiMatch)[];
+export type MatchDefinition = (SingleMatch | MultiMatch | WhitespaceMatch)[];
 export type MatcherConnector = (l: Lexer) => MatcherFn;
 export type MatcherFn = () => Match;
 export type Match = { node: ParserNode; tokenLength: number } | null;
 
 function isMatch(tkn: Token, matcher: MatchDefinition[number]): boolean {
+  function matchValue(
+    v: ValueMatcher | ValueMatcher[] | typeof defineMatch.valueAny
+  ): boolean {
+    if (v === defineMatch.valueAny) return true;
+    if (typeof v === "string") {
+      return tkn.value === v;
+    } else if (typeof v === "number") {
+      return v.toString() === tkn.value;
+    } else if (v instanceof RegExp) {
+      return v.test(tkn.value);
+    } else if (Array.isArray(v)) {
+      return v.some(matchValue);
+    }
+  }
   if (matcher.matchType === "single") {
     if (tkn.type !== matcher.tokenType) return false;
-    if (matcher.value === defineMatch.valueAny) return true;
-    if (typeof matcher.value === "string") {
-      return tkn.value === matcher.value;
-    } else if (typeof matcher.value === "number") {
-      return matcher.value.toString() === tkn.value;
-    } else if (matcher.value instanceof RegExp) {
-      return matcher.value.test(tkn.value);
+    return matchValue(matcher.value);
+  } else if (matcher.matchType === "whitespace") {
+    return (
+      (tkn.type === "whitespace" && matcher.type === "whitespace") ||
+      (tkn.type === "newline" && matcher.type === "newline")
+    );
+  } else {
+    if (matcher.tokenTypes.includes(tkn.type)) {
+      for (let valueMatcher of matcher.values) {
+        if (valueMatcher.tokenType !== tkn.type) continue;
+        if (matchValue(valueMatcher.value)) return true;
+      }
+      return false;
+    } else {
+      return false;
     }
   }
 }

@@ -27,7 +27,7 @@ export default class Lexer {
   seek(idx: number): Token {
     return this.#tokens[(this.#tokenIndex = idx)];
   }
-  at(idx: number): Token | void {
+  at(idx: number): Token | undefined {
     return this.#tokens[idx];
   }
   get tokenIndex() {

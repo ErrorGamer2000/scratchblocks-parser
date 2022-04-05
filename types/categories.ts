@@ -6,8 +6,7 @@ const categories = [
   "control",
   "sensing",
   "operators",
-  "variables",
-  "lists",
+  "data",
   "procedures"
 ] as const;
 

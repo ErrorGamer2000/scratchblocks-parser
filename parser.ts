@@ -31,6 +31,13 @@ interface Script {
   start: Block;
 }
 
-export default class Parser {
+module.exports = class Parser {
   #lexer = new Lexer();
-}
+  load(text: string): void {
+    this.#lexer.load(text);
+    this.#parse();
+  }
+  #parse(): void {
+    console.log(this.#lexer.getTokenList());
+  }
+};

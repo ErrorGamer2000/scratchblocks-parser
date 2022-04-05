@@ -1,13 +1,6 @@
-import ExtensionBlock from "./extensionblocks";
+import ExtensionOpcode from "./extensionopcode";
 
-const blockIDs = [
-  "math_number",
-  "math_integer",
-  "math_whole_number",
-  "math_positive_number",
-  "math_angle",
-  "matrix",
-  "control",
+const opcodes = [
   "control_forever",
   "control_repeat",
   "control_if",
@@ -147,6 +140,6 @@ const blockIDs = [
   "sound_volume"
 ] as const;
 
-type BlockID = typeof blockIDs[number] | ExtensionBlock;
+type BlockOpcode = typeof opcodes[number] | ExtensionOpcode;
 
-export default BlockID;
+export default BlockOpcode;

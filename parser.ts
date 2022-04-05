@@ -1,10 +1,16 @@
-import BlockID from "./blockids.js";
-import Category from "./categories.js";
-import Lexer from "./lexer.js";
+import BlockOpcode from "./types/opcodes.js";
+import Category from "./types/categories.js";
+import Lexer from "./lexer/lexer.js";
+import InputOpcode from "./types/inputs.js";
+
+interface Input {
+  type: InputOpcode;
+  value: string | number;
+}
 
 interface BlockInfo {
   category: Category;
-  blockID: BlockID;
+  opcode: BlockOpcode;
 }
 interface BlockShape {
   isCap: boolean;
@@ -16,11 +22,13 @@ interface BlockShape {
 interface Block {
   info: BlockInfo;
   shape: BlockShape;
+  next: Block;
+  child: Block | null;
 }
 interface Script {
   isEmpty: boolean;
   isFinal: boolean;
-  blocks: Block[];
+  start: Block;
 }
 
 export default class Parser {

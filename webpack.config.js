@@ -5,7 +5,7 @@ const path = require("path");
  */
 module.exports = {
   mode: "production",
-  entry: "parser.ts",
+  entry: "./parser.ts",
   resolve: {
     extensions: [".js", ".ts"]
   },

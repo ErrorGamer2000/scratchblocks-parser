@@ -27,17 +27,28 @@ export interface WhitespaceMatch {
   optional: boolean;
 }
 
+export interface FnMatch {
+  matchType: "function";
+  match: (l: Lexer) => Match;
+  optional: boolean;
+}
+
 export type MatchDefinition = (
   | SingleMatch
   | MultiMatch
   | WhitespaceMatch
   | MatcherConnector
+  | FnMatch
 )[];
 export type MatcherConnector = (l: Lexer) => MatcherFn;
 export type MatcherFn = () => Match;
 export type Match = { node: ParserNode; tokenLength: number } | null;
 
-function isMatch(tkn: Token, matcher: MatchDefinition[number]): boolean {
+function isMatch(
+  tkn: Token,
+  matcher: MatchDefinition[number],
+  last: MatchDefinition[number]
+): boolean {
   if (typeof matcher !== "function") {
     function matchValue(
       v: ValueMatcher | ValueMatcher[] | typeof defineMatch.valueAny
@@ -62,6 +73,7 @@ function isMatch(tkn: Token, matcher: MatchDefinition[number]): boolean {
         (tkn.type === "newline" && matcher.type === "newline")
       );
     } else {
+      if (matcher.matchType === "function") return false;
       if (matcher.tokenTypes.includes(tkn.type)) {
         for (let valueMatcher of matcher.values) {
           if (valueMatcher.tokenType !== tkn.type) continue;
@@ -92,6 +104,7 @@ export function defineMatch(
       let res: MatchResult = [];
       let current = lexer.at(initialIndex);
       if (!current || current.type === "EOF") return null;
+      let last: MatchDefinition[number];
       for (let matcher of matchDef) {
         current = lexer.next();
         if (!current || current.type === "EOF") {
@@ -102,17 +115,30 @@ export function defineMatch(
           match?: Match;
           matches: boolean;
         } => {
-          if (typeof matcher !== "function")
-            return { matches: isMatch(current, matcher) || matcher.optional };
-          let match = matcher(lexer)();
-          return match
-            ? {
-                match,
-                matches: true
-              }
-            : {
-                matches: false
-              };
+          if (typeof matcher === "function") {
+            let match = matcher(lexer)();
+            return match
+              ? {
+                  match,
+                  matches: true
+                }
+              : {
+                  matches: false
+                };
+          } else if (matcher.matchType === "function") {
+            let match = matcher.match(lexer);
+            return match
+              ? {
+                  match,
+                  matches: true
+                }
+              : {
+                  matches: false
+                };
+          } else
+            return {
+              matches: isMatch(current, matcher, last) || matcher.optional
+            };
         })();
         if (!matches.matches) {
           lexer.seek(initialIndex);
@@ -130,6 +156,7 @@ export function defineMatch(
             });
           }
         }
+        last = matcher;
       }
 
       //Reset the parser so it can try other matches as well on the same text
@@ -139,17 +166,31 @@ export function defineMatch(
         if (m.type === "token") {
           return last + 1;
         } else {
-          return m.value.tokenLength;
+          return last + m.value.tokenLength;
         }
       }
 
       return {
         node: createASTNode(res),
-        tokenLength: res.length
+        tokenLength: res.reduce(reduceMatch, 0)
       };
     };
   };
 }
 defineMatch.valueAny = Symbol("defineMatch.valueAny");
 
-export function combineMatchers(...a: MatcherConnector[]) {}
+/**
+ *
+ * @param a A list of matchers to combine, in order of highest to lowest precedence.
+ * @returns A matcher connector that will connect and call each matcher function in turn.
+ */
+export function combineMatchers(...a: MatcherConnector[]): MatcherConnector {
+  return function (l: Lexer): MatcherFn {
+    return function (): Match {
+      for (let m of a) {
+        let match = m(l)();
+        if (match) return match;
+      }
+    };
+  };
+}
